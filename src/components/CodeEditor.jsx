@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-jsx';
+import 'prismjs/themes/prism-tomorrow.css';
 
 const CodeEditor = ({ code, highlightText }) => {
   const [lines, setLines] = useState([]);
 
   useEffect(() => {
     setLines(code.split('\n'));
+    Prism.highlightAll();
   }, [code]);
 
   const highlightLine = (line) => {
@@ -19,12 +23,16 @@ const CodeEditor = ({ code, highlightText }) => {
   };
 
   return (
-    <div className="bg-gray-800 text-white p-4 rounded-lg font-mono text-sm">
-      {lines.map((line, index) => (
-        <pre key={index} className="whitespace-pre-wrap">
-          {highlightLine(line)}
-        </pre>
-      ))}
+    <div className="bg-gray-900 text-white p-4 rounded-lg font-mono text-sm overflow-x-auto">
+      <pre className="language-jsx">
+        <code>
+          {lines.map((line, index) => (
+            <div key={index} className="whitespace-pre-wrap">
+              {highlightLine(line)}
+            </div>
+          ))}
+        </code>
+      </pre>
     </div>
   );
 };
