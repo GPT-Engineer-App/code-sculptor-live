@@ -50,15 +50,19 @@ const AIEditingSequence = ({ originalCode, onEditComplete }) => {
           if (clearSearchStream) clearSearchStream();
         };
       } else {
-        setCurrentCode(prev => prev.replace(data.search, ''));
-        clearReplaceStream = streamTokens(data.replace, (streamedText) => {
-          setReplaceSequence(streamedText);
-          setCurrentCode(prev => prev + streamedText[streamedText.length - 1]);
-        });
+        const searchIndex = currentCode.indexOf(data.search);
+        if (searchIndex !== -1) {
+          const beforeSearch = currentCode.slice(0, searchIndex);
+          const afterSearch = currentCode.slice(searchIndex + data.search.length);
+          clearReplaceStream = streamTokens(data.replace, (streamedText) => {
+            setReplaceSequence(streamedText);
+            setCurrentCode(beforeSearch + streamedText + afterSearch);
+          });
 
-        return () => {
-          if (clearReplaceStream) clearReplaceStream();
-        };
+          return () => {
+            if (clearReplaceStream) clearReplaceStream();
+          };
+        }
       }
     }
   }, [data, isSearching]);
