@@ -9,7 +9,8 @@ const CodeEditor = ({ code, highlightText }) => {
 
   const highlightLine = (line) => {
     if (!highlightText) return line;
-    const parts = line.split(new RegExp(`(${highlightText})`, 'gi'));
+    const escapedHighlightText = highlightText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const parts = line.split(new RegExp(`(${escapedHighlightText})`, 'gi'));
     return parts.map((part, index) => 
       part.toLowerCase() === highlightText.toLowerCase() 
         ? <span key={index} className="bg-yellow-500 text-black">{part}</span>
