@@ -12,6 +12,19 @@ const simulateAIEditing = async () => {
   };
 };
 
+const streamTokens = (text, callback) => {
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < text.length) {
+      callback(text.slice(0, i + 1));
+      i++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 100);
+  return () => clearInterval(interval);
+};
+
 const AIEditingSequence = ({ originalCode, onEditComplete }) => {
   const [currentCode, setCurrentCode] = useState(originalCode);
   const [searchSequence, setSearchSequence] = useState('');
@@ -26,41 +39,41 @@ const AIEditingSequence = ({ originalCode, onEditComplete }) => {
 
   useEffect(() => {
     if (data) {
-      let searchTimer, replaceTimer;
-      
-      if (isSearching) {
-        let i = 0;
-        searchTimer = setInterval(() => {
-          if (i < data.search.length) {
-            setSearchSequence(prev => prev + data.search[i]);
-            i++;
-          } else {
-            clearInterval(searchTimer);
-            setIsSearching(false);
-            // Remove the searched sequence from the code
-            setCurrentCode(prev => prev.replace(data.search, ''));
-          }
-        }, 100);
-      } else {
-        let i = 0;
-        replaceTimer = setInterval(() => {
-          if (i < data.replace.length) {
-            setReplaceSequence(prev => prev + data.replace[i]);
-            setCurrentCode(prev => prev + data.replace[i]);
-            i++;
-          } else {
-            clearInterval(replaceTimer);
-            onEditComplete(currentCode);
-          }
-        }, 100);
-      }
+      let clearSearchStream, clearReplaceStream;
 
-      return () => {
-        clearInterval(searchTimer);
-        clearInterval(replaceTimer);
-      };
+      if (isSearching) {
+        clearSearchStream = streamTokens(data.search, (streamedText) => {
+          setSearchSequence(streamedText);
+        });
+        
+        return () => {
+          if (clearSearchStream) clearSearchStream();
+        };
+      } else {
+        setCurrentCode(prev => prev.replace(data.search, ''));
+        clearReplaceStream = streamTokens(data.replace, (streamedText) => {
+          setReplaceSequence(streamedText);
+          setCurrentCode(prev => prev + streamedText[streamedText.length - 1]);
+        });
+
+        return () => {
+          if (clearReplaceStream) clearReplaceStream();
+        };
+      }
     }
   }, [data, isSearching]);
+
+  useEffect(() => {
+    if (searchSequence === data?.search) {
+      setIsSearching(false);
+    }
+  }, [searchSequence, data]);
+
+  useEffect(() => {
+    if (replaceSequence === data?.replace) {
+      onEditComplete(currentCode);
+    }
+  }, [replaceSequence, data, currentCode, onEditComplete]);
 
   if (isLoading) return <div>AI is thinking...</div>;
   if (isError) return <div>Error occurred during AI editing</div>;
