@@ -4,34 +4,21 @@ import 'prismjs/components/prism-jsx';
 import 'prismjs/themes/prism-tomorrow.css';
 
 const CodeEditor = ({ code, highlightText }) => {
-  const [lines, setLines] = useState([]);
-
   useEffect(() => {
-    setLines(code.split('\n'));
     Prism.highlightAll();
-  }, [code]);
+  }, [code, highlightText]);
 
-  const highlightLine = (line) => {
-    if (!highlightText) return line;
+  const highlightCode = () => {
+    if (!highlightText) return code;
     const escapedHighlightText = highlightText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const parts = line.split(new RegExp(`(${escapedHighlightText})`, 'gi'));
-    return parts.map((part, index) => 
-      part.toLowerCase() === highlightText.toLowerCase() 
-        ? <span key={index} className="bg-yellow-500 text-black">{part}</span>
-        : part
-    );
+    const regex = new RegExp(`(${escapedHighlightText})`, 'gi');
+    return code.replace(regex, '<span class="bg-yellow-500 text-black">$1</span>');
   };
 
   return (
     <div className="bg-gray-900 text-white p-4 rounded-lg font-mono text-sm overflow-x-auto">
       <pre className="language-jsx">
-        <code>
-          {lines.map((line, index) => (
-            <div key={index} className="whitespace-pre-wrap">
-              {highlightLine(line)}
-            </div>
-          ))}
-        </code>
+        <code dangerouslySetInnerHTML={{ __html: Prism.highlight(highlightCode(), Prism.languages.jsx, 'jsx') }} />
       </pre>
     </div>
   );

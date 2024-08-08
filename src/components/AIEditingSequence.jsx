@@ -8,7 +8,8 @@ const simulateAIEditing = async () => {
   await new Promise(resolve => setTimeout(resolve, 2000));
   return {
     search: "const WeatherApp = () => {",
-    replace: "const EnhancedWeatherApp = () => {"
+    replace: "const EnhancedWeatherApp = () => {",
+    fullReplace: "const EnhancedWeatherApp = () => {\n  // Enhanced with AI capabilities"
   };
 };
 
@@ -40,33 +41,29 @@ const AIEditingSequence = ({ originalCode, onEditComplete }) => {
 
   useEffect(() => {
     if (data) {
-      let clearSearchStream, clearReplaceStream;
+      let clearStream;
 
       if (isSearching) {
-        clearSearchStream = streamTokens(data.search, (streamedText) => {
+        clearStream = streamTokens(data.search, (streamedText) => {
           setSearchSequence(streamedText);
           setProgress((streamedText.length / data.search.length) * 50);
         });
-        
-        return () => {
-          if (clearSearchStream) clearSearchStream();
-        };
       } else {
         const searchIndex = currentCode.indexOf(data.search);
         if (searchIndex !== -1) {
           const beforeSearch = currentCode.slice(0, searchIndex);
           const afterSearch = currentCode.slice(searchIndex + data.search.length);
-          clearReplaceStream = streamTokens(data.replace, (streamedText) => {
+          clearStream = streamTokens(data.fullReplace, (streamedText) => {
             setReplaceSequence(streamedText);
             setCurrentCode(beforeSearch + streamedText + afterSearch);
-            setProgress(50 + (streamedText.length / data.replace.length) * 50);
+            setProgress(50 + (streamedText.length / data.fullReplace.length) * 50);
           });
-
-          return () => {
-            if (clearReplaceStream) clearReplaceStream();
-          };
         }
       }
+
+      return () => {
+        if (clearStream) clearStream();
+      };
     }
   }, [data, isSearching, currentCode]);
 
