@@ -32,6 +32,7 @@ const AIEditingSequence = ({ originalCode, onEditComplete }) => {
   const [replaceSequence, setReplaceSequence] = useState('');
   const [isSearching, setIsSearching] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [highlightText, setHighlightText] = useState('');
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['aiEdit'],
@@ -47,6 +48,10 @@ const AIEditingSequence = ({ originalCode, onEditComplete }) => {
         clearStream = streamTokens(data.search, (streamedText) => {
           setSearchSequence(streamedText);
           setProgress((streamedText.length / data.search.length) * 50);
+          
+          // Only highlight if there's exactly one match
+          const matches = (currentCode.match(new RegExp(streamedText, 'g')) || []).length;
+          setHighlightText(matches === 1 ? streamedText : '');
         });
       } else {
         const searchIndex = currentCode.indexOf(data.search);
@@ -57,6 +62,7 @@ const AIEditingSequence = ({ originalCode, onEditComplete }) => {
             setReplaceSequence(streamedText);
             setCurrentCode(beforeSearch + streamedText + afterSearch);
             setProgress(50 + (streamedText.length / data.fullReplace.length) * 50);
+            setHighlightText(streamedText);
           });
         }
       }
@@ -70,11 +76,12 @@ const AIEditingSequence = ({ originalCode, onEditComplete }) => {
   useEffect(() => {
     if (searchSequence === data?.search) {
       setIsSearching(false);
+      setHighlightText(''); // Clear highlight before starting replace
     }
   }, [searchSequence, data]);
 
   useEffect(() => {
-    if (replaceSequence === data?.replace) {
+    if (replaceSequence === data?.fullReplace) {
       onEditComplete(currentCode);
     }
   }, [replaceSequence, data, currentCode, onEditComplete]);
@@ -94,7 +101,7 @@ const AIEditingSequence = ({ originalCode, onEditComplete }) => {
           <span className="font-bold">Replace: </span>
           <span className="bg-green-200 p-1 rounded">{replaceSequence}</span>
         </div>
-        <CodeEditor code={currentCode} highlightText={isSearching ? searchSequence : replaceSequence} />
+        <CodeEditor code={currentCode} highlightText={highlightText} />
       </CardContent>
     </Card>
   );
