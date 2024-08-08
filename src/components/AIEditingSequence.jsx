@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import CodeEditor from './CodeEditor';
 
 const simulateAIEditing = async () => {
   // This is a mock function to simulate AI editing
@@ -74,9 +75,7 @@ const AIEditingSequence = ({ originalCode, onEditComplete }) => {
         <span className="font-bold">Replace: </span>
         <span className="bg-green-200">{replaceSequence}</span>
       </div>
-      <div className="bg-gray-800 text-white p-4 rounded-lg font-mono text-sm whitespace-pre-wrap">
-        {currentCode}
-      </div>
+      <CodeEditor code={currentCode} highlightText={isSearching ? searchSequence : ''} />
     </div>
   );
 };
