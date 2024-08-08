@@ -9,7 +9,7 @@ const simulateAIEditing = async () => {
   return {
     search: "const WeatherApp = () => {",
     replace: "const EnhancedWeatherApp = () => {",
-    fullReplace: "const EnhancedWeatherApp = () => {\n  // Enhanced with AI capabilities"
+    fullReplace: "const EnhancedWeatherApp = () => {\n  // Enhanced with AI capabilities\n  const [aiSuggestions, setAiSuggestions] = useState([]);"
   };
 };
 

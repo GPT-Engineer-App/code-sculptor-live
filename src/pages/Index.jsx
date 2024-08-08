@@ -64,7 +64,23 @@ const Index = () => {
           <CardTitle className="text-3xl font-bold text-center">AI Code Editor Showcase</CardTitle>
         </CardHeader>
         <CardContent>
-          <CodeEditor code={code} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Original Code</h3>
+              <CodeEditor code={code} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-2">AI Edited Code</h3>
+              {isEditing ? (
+                <AIEditingSequence
+                  originalCode={code}
+                  onEditComplete={handleEditComplete}
+                />
+              ) : (
+                <CodeEditor code={code} />
+              )}
+            </div>
+          </div>
           {!isEditing && (
             <Button
               onClick={handleStartEditing}
@@ -72,12 +88,6 @@ const Index = () => {
             >
               Start AI Editing
             </Button>
-          )}
-          {isEditing && (
-            <AIEditingSequence
-              originalCode={code}
-              onEditComplete={handleEditComplete}
-            />
           )}
         </CardContent>
       </Card>
